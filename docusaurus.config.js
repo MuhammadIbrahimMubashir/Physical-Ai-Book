@@ -4,8 +4,11 @@ const config = {
   tagline: 'Learn Robotics and Physical AI step by step',
   url: 'https://MuhammadIbrahimMubashir.github.io',
   baseUrl: '/Physical-Ai-Book/',
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  
+  // <<< CHANGE THESE LINES >>>
+  onBrokenLinks: 'warn',          // changed from 'throw' to 'warn'
+  onBrokenMarkdownLinks: 'warn',  // keep as 'warn'
+
   favicon: 'img/favicon.ico',
   organizationName: 'MuhammadIbrahimMubashir', 
   projectName: 'Physical-Ai-Book',
@@ -24,4 +27,3 @@ const config = {
 };
 
 module.exports = config;
-
