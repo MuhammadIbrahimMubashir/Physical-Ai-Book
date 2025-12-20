@@ -1,3 +1,8 @@
+---
+id: chapter-introduction
+title: Introduction
+---
+
 # Chapter 1: Introduction to Physical AI
 
 ## What is Artificial Intelligence (AI)?
@@ -55,3 +60,4 @@ Advantages:
 - Physical AI connects AI with the real world
 - Robots must understand physics
 - Humanoid robots are designed for human environments
+
