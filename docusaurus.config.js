@@ -1,8 +1,8 @@
 module.exports = {
   title: 'Physical AI & Humanoid Robotics',
   tagline: 'Learn Robotics and Physical AI step by step',
-  url: 'https://muhammadibrahimmubashir.github.io',
-  baseUrl: '/physical-ai-book/',
+  url: 'https://muhammadibrahimmubashirs-projects-physical-ai-book.vercel.app',
+  baseUrl: '/',
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
@@ -23,3 +23,4 @@ module.exports = {
     ],
   ],
 };
+
