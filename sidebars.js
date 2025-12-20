@@ -1,5 +1,5 @@
 module.exports = {
-  mySidebar: [
+  tutorialSidebar: [
     'intro',
     'chapter-1-introduction',
     'chapter-2-foundations-of-robotics',
