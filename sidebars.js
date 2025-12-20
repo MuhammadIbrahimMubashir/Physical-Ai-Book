@@ -1,5 +1,5 @@
 module.exports = {
-  tutorialSidebar: [
+  mySidebar: [
     'intro',
     'chapter-1-introduction',
     'chapter-2-foundations-of-robotics',
@@ -9,6 +9,6 @@ module.exports = {
     'chapter-6-digital-twin',
     'chapter-7-nvidia-isaac',
     'chapter-8-vla',
-    'chapter-9-hardware-lab',
+    'chapter-9-hardware-lab'
   ],
 };
