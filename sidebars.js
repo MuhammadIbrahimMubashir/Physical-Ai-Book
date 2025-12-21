@@ -1,5 +1,6 @@
 module.exports = {
   mySidebar: [
+    'intro',
     'chapter-1-introduction',
     'chapter-2-foundations-of-robotics',
     'chapter-3-ros2',
@@ -11,4 +12,5 @@ module.exports = {
     'chapter-9-hardware-lab',
   ],
 };
+
 
