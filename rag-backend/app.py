@@ -1,41 +1,46 @@
-import streamlit as st
+# app.py
+import os
 import pickle
 import faiss
 from sentence_transformers import SentenceTransformer
-import numpy as np
+import streamlit as st
+import subprocess
 
-# Load FAISS index
-try:
-    index = faiss.read_index("rag-backend/faiss_index/index.faiss")
-except Exception as e:
-    st.error(f"FAISS index not found. Run build_index.py first. Error: {e}")
-    st.stop()
+st.set_page_config(page_title="Physical AI Textbook Chatbot", page_icon="🤖")
 
-# Load document mapping
-try:
-    with open("rag-backend/faiss_index/docs.pkl", "rb") as f:
-        docs = pickle.load(f)
-except Exception as e:
-    st.error(f"Document mapping not found. Run build_index.py first. Error: {e}")
-    st.stop()
+st.title("Physical AI Textbook Chatbot")
+st.write("Ask anything about the textbook chapters (1-9).")
+st.write("Powered by local FAISS index and embeddings.")
+
+# Path to FAISS files
+FAISS_DIR = "rag-backend/faiss_index"
+INDEX_FILE = os.path.join(FAISS_DIR, "index.faiss")
+DOCS_FILE = os.path.join(FAISS_DIR, "docs.pkl")
+
+# Generate FAISS index if not exists
+if not os.path.exists(INDEX_FILE) or not os.path.exists(DOCS_FILE):
+    st.warning("FAISS index or documents not found. Generating now...")
+    subprocess.run(["python3", "rag-backend/build_index.py"])
+    st.success("Index built successfully!")
+
+# Load FAISS index and docs
+index = faiss.read_index(INDEX_FILE)
+with open(DOCS_FILE, "rb") as f:
+    docs = pickle.load(f)
 
 # Load embedding model
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-st.title("Physical AI Textbook Chatbot")
-st.write("Ask anything about the textbook chapters (1-9).")
-
-# Text input
+# User input
 question = st.text_input("Type your question:")
 
 if question:
-    # Create embedding for the question
-    question_vector = model.encode([question]).astype(np.float32)
+    # Convert question to embedding
+    q_vec = model.encode([question]).astype("float32")
 
     # Search in FAISS index
-    D, I = index.search(question_vector, k=1)
-    doc_index = I[0][0]
+    D, I = index.search(q_vec, k=1)
+    answer = docs[I[0][0]]
 
-    # Return the corresponding chapter/content
-    answer = docs[doc_index]
-    st.markdown(f"**Answer:** {answer}")
+    st.write("**Answer:**")
+    st.write(answer)
