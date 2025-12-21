@@ -9,10 +9,6 @@ module.exports = {
     'chapter-7-nvidia-isaac',
     'chapter-8-vla',
     'chapter-9-hardware-lab',
-    {
-      type: 'link',
-      label: 'Chatbot',
-      href: '/chatbot',
-    },
   ],
 };
+
