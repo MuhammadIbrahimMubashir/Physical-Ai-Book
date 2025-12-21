@@ -3,30 +3,39 @@ import os
 import pickle
 import faiss
 from sentence_transformers import SentenceTransformer
-import glob
 
-# Create folder for FAISS index if it doesn't exist
-os.makedirs("rag-backend/faiss_index", exist_ok=True)
+# Folder to store FAISS index and docs
+BASE_DIR = os.path.dirname(__file__)
+FAISS_DIR = os.path.join(BASE_DIR, "faiss_index")
+os.makedirs(FAISS_DIR, exist_ok=True)
 
-# Load all chapter files
-chapter_files = sorted(glob.glob("docs/chapter-*.md"))  # adjust if file names differ
+INDEX_FILE = os.path.join(FAISS_DIR, "index.faiss")
+DOCS_FILE = os.path.join(FAISS_DIR, "docs.pkl")
+
+# Load all chapters from the 'docs' folder
+CHAPTERS_DIR = os.path.join(BASE_DIR, "docs")
+chapter_files = sorted(os.listdir(CHAPTERS_DIR))
+
 chapters = []
+for file in chapter_files:
+    if file.endswith(".md"):
+        with open(os.path.join(CHAPTERS_DIR, file), "r", encoding="utf-8") as f:
+            text = f.read()
+            chapters.append(text)
 
-for file_path in chapter_files:
-    with open(file_path, "r", encoding="utf-8") as f:
-        chapters.append(f.read())
-
-# Generate embeddings
+# Initialize sentence transformer model
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Encode chapters
 embeddings = model.encode(chapters).astype("float32")
 
 # Build FAISS index
 index = faiss.IndexFlatL2(embeddings.shape[1])
 index.add(embeddings)
 
-# Save index and docs
-faiss.write_index(index, "rag-backend/faiss_index/index.faiss")
-with open("rag-backend/faiss_index/docs.pkl", "wb") as f:
+# Save index and documents
+faiss.write_index(index, INDEX_FILE)
+with open(DOCS_FILE, "wb") as f:
     pickle.dump(chapters, f)
 
-print("✅ FAISS index and docs.pkl have been created successfully!")
+print("✅ FAISS index and documents saved successfully!")
