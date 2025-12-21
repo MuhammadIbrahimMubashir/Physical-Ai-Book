@@ -1,38 +1,158 @@
 import streamlit as st
+import os
 import pickle
 import faiss
-from pathlib import Path
+from sentence_transformers import SentenceTransformer
 
+# -----------------------------
+# Functions to build/load index
+# -----------------------------
+def build_faiss_index(docs_path="docs", index_path="faiss_index/index.faiss", docs_pickle_path="faiss_index/docs.pkl"):
+    if not os.path.exists("faiss_index"):
+        os.makedirs("faiss_index")
+    
+    # Load all text files from docs folder
+    texts = []
+    file_names = []
+    for root, dirs, files in os.walk(docs_path):
+        for file in files:
+            if file.endswith(".md"):
+                path = os.path.join(root, file)
+                with open(path, "r", encoding="utf-8") as f:
+                    texts.append(f.read())
+                    file_names.append(file)
+    
+    # Embed texts
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embeddings = model.encode(texts)
+    
+    # Create FAISS index
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings)
+    
+    # Save index and file list
+    faiss.write_index(index, index_path)
+    with open(docs_pickle_path, "wb") as f:
+        pickle.dump(file_names, f)
+    
+    return index, file_names
+
+def load_faiss_index(index_path="faiss_index/index.faiss", docs_pickle_path="faiss_index/docs.pkl"):
+    if not os.path.exists(index_path) or not os.path.exists(docs_pickle_path):
+        return None, None
+    index = faiss.read_index(index_path)
+    with open(docs_pickle_path, "rb") as f:
+        file_names = pickle.load(f)
+    return index, file_names
+
+# -----------------------------
+# Streamlit UI
+# -----------------------------
 st.title("Physical AI Textbook Chatbot")
 st.write("Ask anything about the textbook!")
 
-# Load FAISS index
-index_file = Path("faiss_index/index.faiss")
-doc_file = Path("faiss_index/docs.pkl")
+# Load or build index
+index, file_names = load_faiss_index()
+if index is None:
+    st.info("Building FAISS index. Please wait...")
+    index, file_names = build_faiss_index()
+    st.success("FAISS index built!")
 
-if index_file.exists() and doc_file.exists():
-    index = faiss.read_index(str(index_file))
-    with open(doc_file, "rb") as f:
-        documents = pickle.load(f)
-    st.success("Index loaded successfully!")
-else:
-    st.error("FAISS index or documents not found. Run build_index.py first.")
+# User input
+question = st.text_input("Type your question:")
 
-# Input box
-user_question = st.text_input("Type your question:")
-
-if user_question:
-    # Step 1: Convert question to vector (simple placeholder)
-    # For now we will use random vector just to check flow
-    import numpy as np
-    question_vector = np.random.rand(1, 768).astype("float32")  # later replace with real embedding
+if question and index:
+    # Embed user question
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    question_vector = model.encode([question])
     
-    # Step 2: Search FAISS index
+    # Search FAISS
     D, I = index.search(question_vector, k=1)
+    result_file = file_names[I[0][0]]
     
-    # Step 3: Retrieve the document
-    retrieved_doc = documents[I[0][0]]
+    # Show the answer (full text of the matched chapter)
+    with open(os.path.join("docs", result_file), "r", encoding="utf-8") as f:
+        answer_text = f.read()
     
-    # Step 4: Show answer (for now we just show the retrieved text)
-    st.write("Answer from textbook content:")
-    st.write(retrieved_doc)
+    st.subheader("Answer from textbook:")
+    st.write(answer_text)
+import streamlit as st
+import os
+import pickle
+import faiss
+from sentence_transformers import SentenceTransformer
+
+# -----------------------------
+# Functions to build/load index
+# -----------------------------
+def build_faiss_index(docs_path="docs", index_path="faiss_index/index.faiss", docs_pickle_path="faiss_index/docs.pkl"):
+    if not os.path.exists("faiss_index"):
+        os.makedirs("faiss_index")
+    
+    # Load all text files from docs folder
+    texts = []
+    file_names = []
+    for root, dirs, files in os.walk(docs_path):
+        for file in files:
+            if file.endswith(".md"):
+                path = os.path.join(root, file)
+                with open(path, "r", encoding="utf-8") as f:
+                    texts.append(f.read())
+                    file_names.append(file)
+    
+    # Embed texts
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embeddings = model.encode(texts)
+    
+    # Create FAISS index
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings)
+    
+    # Save index and file list
+    faiss.write_index(index, index_path)
+    with open(docs_pickle_path, "wb") as f:
+        pickle.dump(file_names, f)
+    
+    return index, file_names
+
+def load_faiss_index(index_path="faiss_index/index.faiss", docs_pickle_path="faiss_index/docs.pkl"):
+    if not os.path.exists(index_path) or not os.path.exists(docs_pickle_path):
+        return None, None
+    index = faiss.read_index(index_path)
+    with open(docs_pickle_path, "rb") as f:
+        file_names = pickle.load(f)
+    return index, file_names
+
+# -----------------------------
+# Streamlit UI
+# -----------------------------
+st.title("Physical AI Textbook Chatbot")
+st.write("Ask anything about the textbook!")
+
+# Load or build index
+index, file_names = load_faiss_index()
+if index is None:
+    st.info("Building FAISS index. Please wait...")
+    index, file_names = build_faiss_index()
+    st.success("FAISS index built!")
+
+# User input
+question = st.text_input("Type your question:")
+
+if question and index:
+    # Embed user question
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    question_vector = model.encode([question])
+    
+    # Search FAISS
+    D, I = index.search(question_vector, k=1)
+    result_file = file_names[I[0][0]]
+    
+    # Show the answer (full text of the matched chapter)
+    with open(os.path.join("docs", result_file), "r", encoding="utf-8") as f:
+        answer_text = f.read()
+    
+    st.subheader("Answer from textbook:")
+    st.write(answer_text)
